@@ -3,28 +3,21 @@ pipeline {
 
     environment {
         IMAGE = "hariharaprabhu21/flask-cicd"
-        TAG   = "${BUILD_NUMBER}"
+        TAG   = "${env.BRANCH_NAME.replace('/', '-')}-${env.BUILD_NUMBER}"
     }
 
     options {
         timeout(time: 20, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '10'))
-    }
-
-    triggers {
-        pollSCM('H/2 * * * *')
+        disableConcurrentBuilds()
     }
 
     stages {
-        stage('Checkout') {
-            steps { checkout scm }
-        }
-
         stage('Install & Test') {
             steps {
                 sh '''
                   python3 -m venv venv
-                  venv/bin/pip install -r requirements.txt
+                  venv/bin/pip install -r requirements-dev.txt
                   venv/bin/pytest --junitxml=report.xml
                 '''
             }
@@ -35,18 +28,20 @@ pipeline {
         }
 
         stage('Docker Push') {
+            when { branch 'main' }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub',
                         usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh '''
-                      echo $PASS | docker login -u $USER --password-stdin
-                      docker push $IMAGE:$TAG
-                    '''
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                    retry(3) {
+                        sh 'docker push $IMAGE:$TAG'
+                    }
                 }
             }
         }
 
         stage('Deploy') {
+            when { branch 'main' }
             steps {
                 sh '''
                   docker rm -f flask-app || true
@@ -56,6 +51,7 @@ pipeline {
         }
 
         stage('Smoke Test') {
+            when { branch 'main' }
             steps {
                 sh 'sleep 5 && curl -f http://host.docker.internal:5000/health'
             }
@@ -68,7 +64,7 @@ pipeline {
             sh 'docker logout || true'
             deleteDir()
         }
-        success { echo "Deployed $IMAGE:$TAG" }
+        success { echo "Build OK: $IMAGE:$TAG" }
         failure { echo "Pipeline failed - check the stage in red" }
     }
 }
