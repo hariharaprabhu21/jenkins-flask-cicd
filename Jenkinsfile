@@ -1,4 +1,4 @@
-@Library('hari-lib@docker-agents') _
+@Library('hari-lib') _
 
 pythonDockerPipeline(
     image:   'hariharaprabhu21/flask-cicd',
