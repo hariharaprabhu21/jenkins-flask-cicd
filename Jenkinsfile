@@ -1,3 +1,5 @@
+@Library('hari-lib') _
+
 pipeline {
     agent any
 
@@ -14,47 +16,22 @@ pipeline {
 
     stages {
         stage('Install & Test') {
-            steps {
-                sh '''
-                  python3 -m venv venv
-                  venv/bin/pip install -r requirements-dev.txt
-                  venv/bin/pytest --junitxml=report.xml
-                '''
-            }
+            steps { runPythonTests() }
         }
-
         stage('Docker Build') {
-            steps { sh 'docker build -t $IMAGE:$TAG .' }
+            steps { dockerBuild(image: env.IMAGE, tag: env.TAG) }
         }
-
         stage('Docker Push') {
             when { branch 'main' }
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub',
-                        usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh 'echo $PASS | docker login -u $USER --password-stdin'
-                    retry(3) {
-                        sh 'docker push $IMAGE:$TAG'
-                    }
-                }
-            }
+            steps { dockerPush(image: env.IMAGE, tag: env.TAG) }
         }
-
         stage('Deploy') {
             when { branch 'main' }
-            steps {
-                sh '''
-                  docker rm -f flask-app || true
-                  docker run -d --name flask-app -p 5000:5000 $IMAGE:$TAG
-                '''
-            }
+            steps { deployContainer(name: 'flask-app', image: env.IMAGE, tag: env.TAG, port: 5000) }
         }
-
         stage('Smoke Test') {
             when { branch 'main' }
-            steps {
-                sh 'sleep 5 && curl -f http://host.docker.internal:5000/health'
-            }
+            steps { smokeTest('http://host.docker.internal:5000/health') }
         }
     }
 
@@ -64,7 +41,7 @@ pipeline {
             sh 'docker logout || true'
             deleteDir()
         }
-        success { echo "Build OK: $IMAGE:$TAG" }
-        failure { echo "Pipeline failed - check the stage in red" }
+        success { echo "Build OK: ${env.IMAGE}:${env.TAG}" }
+        failure { echo 'Pipeline failed - check the stage in red' }
     }
 }
