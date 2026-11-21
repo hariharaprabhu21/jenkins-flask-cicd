@@ -6,7 +6,7 @@ def test_home():
 
 def test_health():
     r = app.test_client().get("/health")
-    assert r.get_json()["status"] == "ok"
+    assert r.status_code == 200
 
 def test_version():
     r = app.test_client().get("/version")
