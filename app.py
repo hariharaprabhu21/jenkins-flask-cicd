@@ -8,7 +8,7 @@ def home():
 
 @app.route("/health")
 def health():
-    return {"status": "ok"}, 500
+    return {"status": "ok"}
 
 @app.route("/version")
 def version():
