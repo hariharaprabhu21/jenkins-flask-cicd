@@ -1,4 +1,4 @@
-@Library('hari-lib@k8s-deploy') _
+@Library('hari-lib') _
 
 pythonDockerPipeline(
     image:        'hariharaprabhu21/flask-cicd',
