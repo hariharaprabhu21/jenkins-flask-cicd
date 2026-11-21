@@ -1,7 +1,9 @@
-@Library('hari-lib') _
+@Library('hari-lib@k8s-deploy') _
 
 pythonDockerPipeline(
-    image:   'hariharaprabhu21/flask-cicd',
-    appName: 'flask-app',
-    port:    5000
+    image:        'hariharaprabhu21/flask-cicd',
+    appName:      'flask-app',
+    deployTarget: 'k8s',
+    namespace:    'flask',
+    nodePort:     30080
 )
