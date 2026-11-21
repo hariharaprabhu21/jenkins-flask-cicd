@@ -3,7 +3,7 @@
 pythonDockerPipeline(
     image:        'hariharaprabhu21/flask-cicd',
     appName:      'flask-app',
-    deployTarget: 'k8s',
-    namespace:    'flask',
-    nodePort:     30080
+    deployTarget: 'gitops',
+    gitopsRepo:   'github.com/hariharaprabhu21/flask-cicd-gitops.git',
+    gitopsPath:   'apps/flask-app'
 )
