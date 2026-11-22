@@ -1,9 +1,9 @@
-@Library('hari-lib') _
+@Library('hari-lib@environments') _
 
-pythonDockerPipeline(
-    image:        'hariharaprabhu21/flask-cicd',
-    appName:      'flask-app',
-    deployTarget: 'gitops',
-    gitopsRepo:   'github.com/hariharaprabhu21/flask-cicd-gitops.git',
-    gitopsPath:   'apps/flask-app'
+pythonGitOpsPipeline(
+    image:      'hariharaprabhu21/flask-cicd',
+    gitopsRepo: 'github.com/hariharaprabhu21/flask-cicd-gitops.git',
+    devPath:    'apps/flask-app/overlays/dev',
+    prodPath:   'apps/flask-app/overlays/prod',
+    approvers:  'admin'
 )
