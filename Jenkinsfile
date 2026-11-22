@@ -1,4 +1,4 @@
-@Library('hari-lib@environments') _
+@Library('hari-lib') _
 
 pythonGitOpsPipeline(
     image:      'hariharaprabhu21/flask-cicd',
